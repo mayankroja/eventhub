@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateEventDto } from './dto/create-event.dto';
@@ -12,12 +13,21 @@ import { Role } from '../generated/prisma/client';
 export class EventService {
   constructor(private prisma: PrismaService) {}
 
+  // src/event/event.service.ts - create method
   async create(createEventDto: CreateEventDto, organizerId: string) {
-    // Ensure the user is an organizer (already checked in controller, but we can double-check)
+    // Ensure capacity is a number
+    const capacity = Number(createEventDto.capacity);
+    if (isNaN(capacity)) {
+      throw new BadRequestException('Capacity must be a valid number');
+    }
+
     const event = await this.prisma.event.create({
       data: {
-        ...createEventDto,
+        title: createEventDto.title,
+        description: createEventDto.description,
         date: new Date(createEventDto.date),
+        location: createEventDto.location,
+        capacity, // now it's a number
         organizerId,
       },
     });
@@ -66,7 +76,16 @@ export class EventService {
     if (!event) {
       throw new NotFoundException(`Event with ID ${id} not found`);
     }
-
+    const data: any = { ...updateEventDto };
+    if (updateEventDto.capacity !== undefined) {
+      data.capacity = Number(updateEventDto.capacity);
+      if (isNaN(data.capacity)) {
+        throw new BadRequestException('Capacity must be a valid number');
+      }
+    }
+    if (updateEventDto.date) {
+      data.date = new Date(updateEventDto.date);
+    }
     // Only the organizer or an admin can update
     if (event.organizerId !== userId && userRole !== 'ADMIN') {
       throw new ForbiddenException('You are not allowed to update this event');
@@ -74,10 +93,7 @@ export class EventService {
 
     return this.prisma.event.update({
       where: { id },
-      data: {
-        ...updateEventDto,
-        date: updateEventDto.date ? new Date(updateEventDto.date) : undefined,
-      },
+      data: data,
     });
   }
 

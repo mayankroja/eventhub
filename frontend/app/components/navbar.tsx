@@ -1,3 +1,4 @@
+// frontend/app/components/navbar.tsx
 'use client';
 
 import Link from 'next/link';
@@ -12,6 +13,7 @@ export default function Navbar() {
 
   const navItems = [
     { name: 'Home', href: '/' },
+    { name: 'Events', href: '/events' }, // 👈 new link
     ...(!user
       ? [
           { name: 'Login', href: '/login' },
