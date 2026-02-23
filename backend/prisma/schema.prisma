@@ -21,10 +21,44 @@ model User {
   name           String
   passwordHash   String
   role           Role      @default(USER)
-  // events         Event[]   @relation("Organizer")
-  // registrations  Registration[]
+  events         Event[]   @relation("Organizer")
+  registrations  Registration[]
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
+}
+
+model Event {
+  id          String    @id @default(uuid())
+  title       String
+  description String
+  date        DateTime
+  location    String
+  capacity    Int
+  organizerId String
+  organizer   User      @relation("Organizer", fields: [organizerId], references: [id])
+  registrations Registration[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Registration {
+  id        String   @id @default(uuid())
+  eventId   String
+  userId    String
+  status    RegistrationStatus @default(CONFIRMED)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  event     Event    @relation(fields: [eventId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([eventId, userId]) // prevent duplicate registrations
+}
+
+enum RegistrationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
 }
 
 enum Role {
