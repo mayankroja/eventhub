@@ -49,10 +49,10 @@ model Registration {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  event     Event    @relation(fields: [eventId], references: [id])
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id])
 
-  @@unique([eventId, userId]) // prevent duplicate registrations
+  @@unique([eventId, userId])
 }
 
 enum RegistrationStatus {

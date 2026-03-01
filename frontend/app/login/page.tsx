@@ -25,10 +25,10 @@ export default function LoginPage() {
     }
   }, [searchParams]);
 
-  // If already logged in, redirect to dashboard
+  // If already logged in, redirect to profile
   useEffect(() => {
     if (!loading && user) {
-      router.push('/dashboard');
+      router.push('/profile');
     }
   }, [user, loading, router]);
 

@@ -56,4 +56,14 @@ export class EventController {
   async remove(@Param('id') id: string, @CurrentUser() user) {
     return this.eventService.remove(id, user.userId, user.role);
   }
+
+  // event.controller.ts
+  @Get('organizer/me')
+  @UseGuards(AuthGuard('jwt'))
+  async findMyEvents(@CurrentUser() user) {
+    if (user.role !== Role.ORGANIZER) {
+      throw new ForbiddenException('Only organizers can access this');
+    }
+    return this.eventService.findByOrganizer(user.userId);
+  }
 }

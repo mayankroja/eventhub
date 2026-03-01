@@ -34,36 +34,84 @@ export class EventService {
     return event;
   }
 
+  // event.service.ts
+
   async findAll() {
-    return this.prisma.event.findMany({
+    const events = await this.prisma.event.findMany({
       include: {
-        _count: {
-          select: { registrations: true },
-        },
         organizer: {
           select: { id: true, name: true, email: true },
         },
       },
       orderBy: { date: 'asc' },
     });
+
+    // For each event, get the confirmed registration count
+    const eventsWithCount = await Promise.all(
+      events.map(async (event) => {
+        const confirmedCount = await this.prisma.registration.count({
+          where: { eventId: event.id, status: 'CONFIRMED' },
+        });
+        return {
+          ...event,
+          _count: {
+            registrations: confirmedCount, // now only CONFIRMED
+          },
+        };
+      }),
+    );
+
+    return eventsWithCount;
   }
 
   async findOne(id: string) {
     const event = await this.prisma.event.findUnique({
       where: { id },
       include: {
-        _count: {
-          select: { registrations: true },
-        },
         organizer: {
           select: { id: true, name: true, email: true },
         },
       },
     });
-    if (!event) {
-      throw new NotFoundException(`Event with ID ${id} not found`);
-    }
-    return event;
+    if (!event) throw new NotFoundException(`Event with ID ${id} not found`);
+
+    const confirmedCount = await this.prisma.registration.count({
+      where: { eventId: id, status: 'CONFIRMED' },
+    });
+
+    return {
+      ...event,
+      _count: {
+        registrations: confirmedCount,
+      },
+    };
+  }
+
+  // event.service.ts
+  async findByOrganizer(organizerId: string) {
+    const events = await this.prisma.event.findMany({
+      where: { organizerId },
+      include: {
+        organizer: {
+          select: { id: true, name: true, email: true },
+        },
+      },
+      orderBy: { date: 'asc' },
+    });
+
+    const eventsWithCount = await Promise.all(
+      events.map(async (event) => {
+        const confirmedCount = await this.prisma.registration.count({
+          where: { eventId: event.id, status: 'CONFIRMED' },
+        });
+        return {
+          ...event,
+          _count: { registrations: confirmedCount },
+        };
+      }),
+    );
+
+    return eventsWithCount;
   }
 
   async update(
