@@ -107,7 +107,9 @@ export default function ProfilePage() {
             <UserCircleIcon className="w-12 h-12 text-indigo-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{user.email.split('@')[0]}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+  {user.name || user.email.split('@')[0]}
+</h1>
             <p className="text-gray-600">{user.email}</p>
             <div className="flex items-center mt-1 space-x-2">
               <span className={`px-2 py-1 text-xs font-medium rounded-full ${
