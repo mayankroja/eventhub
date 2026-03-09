@@ -7,7 +7,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
-import { Role } from '../generated/prisma/client';
+import { Role } from '@prisma/client';
 
 @Injectable()
 export class EventService {

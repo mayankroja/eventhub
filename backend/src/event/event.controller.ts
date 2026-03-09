@@ -13,7 +13,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { EventService } from './event.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
-import { Role } from '../generated/prisma/client';
+import { Role } from '@prisma/client';
 import { CurrentUser } from '../auth/current-user.decorator';
 
 @Controller('events')

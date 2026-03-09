@@ -31,7 +31,6 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { Role } from '../generated/prisma/client';
 
 const mockEventDto = {
   title: 'Test Event',
