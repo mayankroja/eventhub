@@ -14,8 +14,7 @@ import { BullModule } from '@nestjs/bullmq';
   imports: [
     BullModule.forRoot({
       connection: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6379'),
+        url: process.env.REDIS_URL,
       },
     }),
     AuthModule,
@@ -27,4 +26,4 @@ import { BullModule } from '@nestjs/bullmq';
   controllers: [AppController, HealthController],
   providers: [AppService, PrismaService],
 })
-export class AppModule {}
+export class AppModule { }
