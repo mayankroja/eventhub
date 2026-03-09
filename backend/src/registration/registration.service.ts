@@ -8,12 +8,15 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateRegistrationDto } from './dto/create-registration.dto';
 import { EventsGateway } from '../event/event.gateway';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 
 @Injectable()
 export class RegistrationService {
   constructor(
     private prisma: PrismaService,
     private eventsGateway: EventsGateway,
+    @InjectQueue('email') private emailQueue: Queue,
   ) {}
 
   async register(userId: string, createRegistrationDto: CreateRegistrationDto) {
@@ -84,6 +87,23 @@ export class RegistrationService {
 
       // 8. Emit real‑time update
       this.eventsGateway.emitSeatUpdate(eventId, availableSeats);
+
+      const user = await tx.user.findUnique({ where: { id: userId } });
+      const eventDetail = await tx.event.findUnique({ where: { id: eventId } });
+
+      // Queue email (don't await – runs in background)
+      await this.emailQueue.add('send-confirmation', {
+        to: user!.email,
+        subject: `Registration confirmed for ${eventDetail!.title}`,
+        html: `
+      <h1>Registration Confirmed</h1>
+      <p>Hi ${user!.name},</p>
+      <p>You have successfully registered for <strong>${eventDetail!.title}</strong>.</p>
+      <p><strong>Date:</strong> ${eventDetail!.date}</p>
+      <p><strong>Location:</strong> ${eventDetail!.location}</p>
+      <p>We look forward to seeing you there!</p>
+    `,
+      });
 
       return registration;
     });

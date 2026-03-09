@@ -1,0 +1,58 @@
+name: CI
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    # Spin up PostgreSQL and Redis for tests
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: testdb
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      # Install backend dependencies
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: ./backend
+
+      # Run database migrations (creates the schema)
+      - name: Run Prisma migrations
+        run: npx prisma migrate dev --name init
+        working-directory: ./backend
+        env:
+          DATABASE_URL: postgresql://postgres:testpass@localhost:5432/testdb
+
+      # Run unit tests
+      - name: Run unit tests
+        run: npm run test
+        working-directory: ./backend
+
+      # Run e2e tests (with DATABASE_URL set)
+      - name: Run e2e tests
+        run: npm run test:e2e
+        working-directory: ./backend
+        env:
+          DATABASE_URL: postgresql://postgres:testpass@localhost:5432/testdb
