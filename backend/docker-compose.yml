@@ -43,12 +43,12 @@ services:
       redis:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://postgres:password@postgres:5432/eventhub?schema=public
-      REDIS_URL: redis://redis:6379
-      JWT_SECRET: your_super_secret_key_here
-      RESEND_API_KEY: re_NRJQUj9n_Euh2ntNjDE1hpGnYWor3XnNh
-      NODE_ENV: development
-      PORT: 3001
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      NODE_ENV: ${NODE_ENV}
+      PORT: ${PORT}
     # Mount for live code reload (optional, for development only)
     # volumes:
     #   - ./backend:/app
