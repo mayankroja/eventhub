@@ -36,13 +36,21 @@ export class AuthController {
     }
     const { access_token } = await this.authService.login(user);
 
-    // Set cookie
+    const isProd = process.env.NODE_ENV === 'production';
+
     response.cookie('token', access_token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      domain: process.env.COOKIE_DOMAIN,
-      partitioned: true,
+      secure: isProd,
+      // CURRENT SETUP (Vercel + Render): Must use 'none' for cross-site requests.
+      // TODO: When you get a custom domain (e.g., app.yourdomain.com + api.yourdomain.com),
+      // change this to 'lax' or 'strict'.
+      sameSite: isProd ? 'none' : 'lax',
+
+      // TODO: When you get a custom domain, uncomment the line below,
+      // and set COOKIE_DOMAIN=".yourdomain.com" in your Render environment variables.
+      // domain: process.env.COOKIE_DOMAIN,
+
+      path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
@@ -52,10 +60,15 @@ export class AuthController {
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   async logout(@Res({ passthrough: true }) response: Response) {
+    const isProd = process.env.NODE_ENV === 'production';
+
     response.clearCookie('token', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+      secure: isProd,
+      // Keep this matching the login settings exactly
+      sameSite: isProd ? 'none' : 'lax',
+      // domain: process.env.COOKIE_DOMAIN, // Uncomment when using custom domain
+      path: '/',
     });
     return { message: 'Logout successful' };
   }
